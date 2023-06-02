@@ -113,6 +113,24 @@ class TestAccountService(TestCase):
         response = self.client.post(BASE_URL, json={"name": "not enough data"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_read_an_account(self):
+        account = self._create_accounts(1)[0]
+        response = self.client.get(
+            f"{BASE_URL}/{account.id}",
+            content_type="application/json"
+        )
+        new_account = response.get_json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(new_account["name"], account.name)
+        self.assertEqual(new_account["email"], account.email)
+        self.assertEqual(new_account["address"], account.address)
+        self.assertEqual(new_account["phone_number"], account.phone_number)
+        self.assertEqual(new_account["date_joined"], str(account.date_joined))
+
+    def test_get_account_not_found(self):
+        resp = self.client.get(f"{BASE_URL}/0")
+        self.addClassCleanup(resp.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_unsupported_media_type(self):
         """It should not Create an Account when sending the wrong media type"""
         account = AccountFactory()
